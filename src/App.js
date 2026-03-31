@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import { db } from "./firebase";
 import {
@@ -16,12 +16,10 @@ function App() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const studentsCollection = collection(db, "students");
-
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const snapshot = await getDocs(studentsCollection);
+      const snapshot = await getDocs(collection(db, "students"));
       const loadedStudents = snapshot.docs.map((studentDoc) => ({
         id: studentDoc.id,
         ...studentDoc.data(),
@@ -33,11 +31,11 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [fetchStudents]);
 
   const resetForm = () => {
     setName("");
@@ -52,7 +50,7 @@ function App() {
     }
 
     try {
-      await addDoc(studentsCollection, {
+      await addDoc(collection(db, "students"), {
         name: name.trim(),
         course: course.trim(),
         year: Number(year),
